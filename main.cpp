@@ -3,12 +3,12 @@
 #include <cstdio>
 #include <cassert>
 #include <time.h>
-#include "CppEnigmaSim/reflector.h"
-#include "CppEnigmaSim/rotor.h"
-#include "CppEnigmaSim/Enigma.h"
-#include "CppEnigmaSim/plugboard.h"
-#include "CppEnigmaSim/AddSubMod.h"
-#include "CppEnigmaSim/constants.h"
+#include "reflector.h"
+#include "rotor.h"
+#include "Enigma.h"
+#include "plugboard.h"
+#include "AddSubMod.h"
+#include "constants.h"
 
 reflector_t make_M4_relector(const reflector_t& thin, const reflector_t& greek,
         char ofs, int ring) {
