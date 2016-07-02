@@ -13,8 +13,9 @@
 
 #include "Enigma.h"
 
-Enigma::Enigma(const reflector_t& ref, const rotor_t& l, const rotor_t& m, const rotor_t& r) :
-reflector(ref), left(l), middle(m), right(r) {}
+Enigma::Enigma(const reflector_t& ref, const rotor_t& l, const rotor_t& m, const rotor_t& r)
+: reflector(ref), left(l), middle(m), right(r) {
+}
 
 void Enigma::init(int ofs_l, int ring_l, int ofs_m, int ring_m, int ofs_r, int ring_r) {
     left.ofs = SubMod(ofs_l, ring_l);
@@ -61,11 +62,23 @@ int Enigma::code(int ch) const {
     return exit(enter(ch));
 }
 
+int Enigma::getLeftOfs() const {
+    return left.ofs;
+}
+
+int Enigma::getMiddleOfs() const {
+    return middle.ofs;
+}
+
+int Enigma::getRightOfs() const {
+    return right.ofs;
+}
+
 /*
 Enigma::Enigma(const Enigma& orig) {
     //copy ctor
 }
-*/
+ */
 
 Enigma::~Enigma() {
 }
