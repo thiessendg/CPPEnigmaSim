@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdio>
 #include <cassert>
+#include <map>
 #include <time.h>
 #include "reflector.h"
 #include "rotor.h"
@@ -9,6 +10,61 @@
 #include "plugboard.h"
 #include "AddSubMod.h"
 #include "constants.h"
+
+int romanToInt(std::string s) {
+    std::map<char, int> roman;
+    //roman['M'] = 1000;
+    //roman['D'] = 500;
+    //roman['C'] = 100;
+    //roman['L'] = 50;
+    roman['X'] = 10; //all my numbers will be below 10
+    roman['V'] = 5;
+    roman['I'] = 1;
+
+    int result = 0;
+    for (int i = 0; i < s.size() - 1; ++i) {
+        if (roman[s[i]] < roman[s[i + 1]])
+            result -= roman[s[i]];
+        else
+            result += roman[s[i]];
+    }
+    result += roman[s[s.size() - 1]];
+    return result;
+}
+
+const rotor_t* assignRotor(const std::string& rotor) {
+    const rotor_t* temp;
+    switch (romanToInt(rotor)) {
+        case 1:
+            temp = &I;
+            break;
+        case 2:
+            temp = &II;
+            break;
+        case 3:
+            temp = &III;
+            break;
+        case 4:
+            temp = &IV;
+            break;
+        case 5:
+            temp = &V;
+            break;
+        case 6:
+            temp = &VI;
+            break;
+        case 7:
+            temp = &VII;
+            break;
+        case 8:
+            temp = &VIII;
+            break;
+        default:
+            temp = &I;
+            break;
+    }
+    return temp;
+}
 
 reflector_t make_M4_reflector(const reflector_t& thin, const reflector_t& greek,
         char ofs, int ring) {
@@ -216,26 +272,31 @@ int main(int argc, char** args) {
             "EWTYX"); //expected output
      */
     //prompt user for I/M3 or M4 Enigma
-    int machine, lt_r, mi_r, rt_r, gk_r;
+    int myMachine, leftRing, middleRing, rightRing, greekRing;
     char pb[40];
-    int lt, mi, rt;
-    char reflektor, greek, lt_s, mi_s, rt_s, gk_s;
-    printf("Enigma M3 or M4? Enter 3 or 4:\n");
-    scanf("%d", &machine);
-    getchar(); //pull one newline off the input buffer
+    char leftRoman[5], middleRoman[5], rightRoman[5];
+    char reflektor, greek, leftStart, middleStart, rightStart, greekStart;
 
+    printf("Enigma I/M3 or M4? Enter 3 or 4:\n");
+    scanf("%d", &myMachine);
+    getchar(); //pull one newline off the input buffer
+    if (myMachine < 3 || myMachine > 4) {
+        printf("ERROR - machine type invalid; must be 3 for I/M3 or 4 for M4!\n");
+        return -1;
+    }
     //prompt user for plug board settings
     printf("Enter plugboard wiring (if any) as space separated pairs. Ex: AN BY CX: \n");
     fgets(pb, sizeof (pb), stdin);
-    plugboard_t myPlug(pb);
-    const reflector_t* myRefl;
-    const reflector_t* myM4Refl;
-    const reflector_t* myGreek;
-    const rotor_t* myLRot;
-    const rotor_t* myMRot;
-    const rotor_t* myRRot;
-   
-    if (machine == 3) {
+    plugboard_t myPlugboard(pb);
+    
+    const reflector_t* myReflector;
+    const reflector_t* myThinReflector;
+    const reflector_t* myGreekRotor;
+    const rotor_t* myLeftRotor;
+    const rotor_t* myMiddleRotor;
+    const rotor_t* myRightRotor;
+
+    if (myMachine == 3) {
         //prompt user for reflektor
         printf("Enter Reflector (A, B, C):\n");
         scanf("%c", &reflektor);
@@ -243,206 +304,127 @@ int main(int argc, char** args) {
 
         switch (reflektor) {
             case 'A':
-                myRefl = &A;
+                myReflector = &A;
                 break;
             case 'B':
-                myRefl = &B;
+                myReflector = &B;
                 break;
             case 'C':
-                myRefl = &C;
+                myReflector = &C;
                 break;
             default:
-                myRefl = &B;
+                printf("Reflector value invalid; defaulting to B reflector.\n");
+                myReflector = &B;
                 break;
         }
     }//endif machine I/M3
-    
-    if (machine == 4) {
+
+    if (myMachine == 4) {
         //prompt user for reflektor
-        printf("Enter Reflector (B or C (thin)):\n");
+        printf("Enter thin reflector (B or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
 
         switch (reflektor) {
             case 'B':
-                myM4Refl = &B_Thin;
+            case 'b':
+                myThinReflector = &B_Thin;
                 break;
             case 'C':
-                myM4Refl = &C_Thin;
+            case 'c':
+                myThinReflector = &C_Thin;
                 break;
             default:
-                myM4Refl = &B_Thin;
+                printf("Thin reflector value invalid; defaulting to thin B.\n");
+                myThinReflector = &B_Thin;
                 break;
         }
-        
+
         //prompt user for greek rotor beta or gamma
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
         scanf("%c", &greek);
         getchar(); //pull one newline off the input buffer
         switch (greek) {
             case 'B':
-                myGreek = &Beta;
+            case 'b':
+                myGreekRotor = &Beta;
                 break;
             case 'G':
-                myGreek = &Gamma;
+            case 'g':
+                myGreekRotor = &Gamma;
                 break;
             default:
-                myGreek = &Beta;
+                printf("Greek rotor value invalid; defaulting to Beta.\n");
+                myGreekRotor = &Beta;
                 break;
         }
-        printf("Enter starting char of greek wheel (Ex. A):\n");
-        scanf("%c", &gk_s);
+        printf("Enter starting char of greek wheel (A-Z):\n");
+        scanf("%c", &greekStart);
         getchar(); //pull one newline off the input buffer
 
         printf("Enter greek wheel ring position (Ex. 1):\n");
-        scanf("%d", &gk_r);
+        scanf("%d", &greekRing);
         getchar(); //pull one newline off the input buffer
-        reflector_t temp = make_M4_reflector(*myM4Refl, *myGreek, gk_s, gk_r);
-        myRefl = &temp;
+        reflector_t temp = make_M4_reflector(*myThinReflector, *myGreekRotor, greekStart, greekRing);
+        myReflector = &temp;
     }//endif machine M4
 
-        //prompt user for rotors, positions, rings
-        printf("Enter left, middle, and right rotor numbers (1=I, 2=II, 3=III,etc): \n");
-        printf("Example: 1 3 5 means I III V\n");
-        scanf("%d %d %d", &lt, &mi, &rt);
+    //prompt user for rotors, positions, rings
+    printf("Enter left, middle, and right rotor roman numbers (I, II, III, etc): \n");
+    //printf("Example: 1 3 5 means I III V\n");
+    scanf("%s %s %s", leftRoman, middleRoman, rightRoman);
+    myLeftRotor = assignRotor(leftRoman);
+    myMiddleRotor = assignRotor(middleRoman);
+    myRightRotor = assignRotor(rightRoman);
+    getchar(); //pull one newline off the input buffer
 
-        switch (lt) {
-            case 1:
-                myLRot = &I;
-                break;
-            case 2:
-                myLRot = &II;
-                break;
-            case 3:
-                myLRot = &III;
-                break;
-            case 4:
-                myLRot = &IV;
-                break;
-            case 5:
-                myLRot = &V;
-                break;
-            case 6:
-                myLRot = &VI;
-                break;
-            case 7:
-                myLRot = &VII;
-                break;
-            case 8:
-                myLRot = &VIII;
-                break;
-            default:
-                myLRot = &I;
-                break;
-        }
-        switch (mi) {
-            case 1:
-                myMRot = &I;
-                break;
-            case 2:
-                myMRot = &II;
-                break;
-            case 3:
-                myMRot = &III;
-                break;
-            case 4:
-                myMRot = &IV;
-                break;
-            case 5:
-                myMRot = &V;
-                break;
-            case 6:
-                myMRot = &VI;
-                break;
-            case 7:
-                myMRot = &VII;
-                break;
-            case 8:
-                myMRot = &VIII;
-                break;
-            default:
-                myMRot = &I;
-                break;
-        }
-        switch (rt) {
-            case 1:
-                myRRot = &I;
-                break;
-            case 2:
-                myRRot = &II;
-                break;
-            case 3:
-                myRRot = &III;
-                break;
-            case 4:
-                myRRot = &IV;
-                break;
-            case 5:
-                myRRot = &V;
-                break;
-            case 6:
-                myRRot = &VI;
-                break;
-            case 7:
-                myRRot = &VII;
-                break;
-            case 8:
-                myRRot = &VIII;
-                break;
-            default:
-                myRRot = &I;
-                break;
-        }
-        getchar(); //pull one newline off the input buffer
+    printf("Enter space separated starting char, left to right (Ex. A A A):\n");
+    scanf("%c %c %c", &leftStart, &middleStart, &rightStart);
+    getchar(); //pull one newline off the input buffer
 
-        printf("Enter space separated starting char, left to right (Ex. A A A):\n");
-        scanf("%c %c %c", &lt_s, &mi_s, &rt_s);
-        getchar(); //pull one newline off the input buffer
+    printf("Enter space separated ring position, left to right (Ex. 1 1 1):\n");
+    scanf("%d %d %d", &leftRing, &middleRing, &rightRing);
+    getchar(); //pull one newline off the input buffer
 
-        printf("Enter space separated ring position, left to right (Ex. 1 1 1):\n");
-        scanf("%d %d %d", &lt_r, &mi_r, &rt_r);
-        getchar(); //pull one newline off the input buffer
-       
-    Enigma enigma(*myRefl, *myLRot, *myMRot, *myRRot);
-    enigma.init(lt_s - 'A', lt_r - 1, mi_s - 'A', mi_r - 1, rt_s - 'A', rt_r - 1);
+    Enigma myEnigma(*myReflector, *myLeftRotor, *myMiddleRotor, *myRightRotor);
+    myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
 
     printf("Beginning display:\n");
-    printf("%c %c %c\n", AddMod(enigma.getLeftOfs(), lt_r - 1) + 'A',
-            AddMod(enigma.getMiddleOfs(), mi_r - 1) + 'A',
-            AddMod(enigma.getRightOfs(), rt_r - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
+            AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
+            AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
 
-    char msg[250];
-    printf("Enter your message (250 char limit):\n");
-    fgets(msg, 250, stdin);
+    char myMessage[256]; //read somewhere messages were <= 250
+    printf("Enter your message (256 char limit):\n");
+    fgets(myMessage, 256, stdin);
 
     //remove the null terminator
-    for (int i = 0; i < sizeof (msg); ++i) {
-        if (msg[i] == '\n') {
-            msg[i] = '\0';
+    for (int i = 0; i < sizeof (myMessage); ++i) {
+        if (myMessage[i] == '\n') {
+            myMessage[i] = '\0';
         }
     }
-    //if we get all the way to here, there must not have been a newline!
 
-    std::string out;
-    for (int i = 0; msg[i]; i++) {
-        enigma.advance();
-        int ch = myPlug.map[msg[i] - 'A'];
+    std::string output;
+    for (int i = 0; myMessage[i]; i++) {
+        myEnigma.advance();
+        int ch = myPlugboard.map[myMessage[i] - 'A'];
         assert(ch >= 0 && ch < 26);
-        ch = enigma.code(ch);
+        ch = myEnigma.code(ch);
         assert(ch >= 0 && ch < 26);
-        const int check = myPlug.map[enigma.code(ch)] + 'A';
-        ch = myPlug.map[ch];
-        out += ch + 'A';
+        const int check = myPlugboard.map[myEnigma.code(ch)] + 'A';
+        ch = myPlugboard.map[ch];
+        output += ch + 'A';
     } //end for msg
 
-    printf("message: \n\t%s\n", msg);
+    printf("message: \n\t%s\n", myMessage);
 
-    printf("encrypt/decrypt: \n\t%s\n", out.c_str());
+    printf("encoded:  \n\t%s\n", output.c_str());
 
     printf("Ending display:\n");
-    printf("%c %c %c\n", AddMod(enigma.getLeftOfs(), lt_r - 1) + 'A',
-            AddMod(enigma.getMiddleOfs(), mi_r - 1) + 'A',
-            AddMod(enigma.getRightOfs(), rt_r - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
+            AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
+            AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
 
     return 0;
 }
