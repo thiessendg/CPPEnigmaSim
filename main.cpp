@@ -1,50 +1,24 @@
 #include <string>
 #include <vector>
-//#include <cstdio>
 #include <cassert>
 #include <map>
-//#include <time.h>
+#include <cctype>
 #include "reflector.h"
 #include "rotor.h"
 #include "Enigma.h"
 #include "plugboard.h"
-//#include "AddSubMod.h"
 #include "constants.h"
 
-int romanToInt(const std::string& s) {
-    std::map<char, int> roman;
-    //roman['M'] = 1000;
-    //roman['D'] = 500;
-    //roman['C'] = 100;
-    //roman['L'] = 50;
-    roman['X'] = 10; //all my numbers will be below 10
-    roman['V'] = 5;
-    roman['I'] = 1;
-
-    int result = 0;
-    for (int i = 0; i < s.size() - 1; ++i) {
-        if (roman[s[i]] < roman[s[i + 1]])
-            result -= roman[s[i]];
-        else
-            result += roman[s[i]];
-    }
-    result += roman[s[s.size() - 1]];
-    return result;
-}
-
-const reflector_t* M3Reflector(const char& reflector) {
+const reflector_t* make_M3_Reflector(const char& reflector) {
     const reflector_t* temp;
     switch (reflector) {
         case 'A':
-        case 'a':
             temp = &A;
             break;
         case 'B':
-        case 'b':
             temp = &B;
             break;
         case 'C':
-        case 'c':
             temp = &C;
             break;
         default:
@@ -55,11 +29,11 @@ const reflector_t* M3Reflector(const char& reflector) {
     return temp;
 }
 
-reflector_t make_M4_reflector(const reflector_t& thin, const reflector_t& greek,
+reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
         char ofs, int ring) {
     reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
-    ofs = static_cast<char>(SubMod(ofs, ring - 1));
+    ofs = static_cast<char> (SubMod(ofs, ring - 1));
 
     // make the inverse of the mappings
     int inverse_thin[26], inverse_greek[26];
@@ -75,14 +49,33 @@ reflector_t make_M4_reflector(const reflector_t& thin, const reflector_t& greek,
     for (int i = 0; i < 26; i++) {
         int ch = greek.map[AddMod(i, ofs)]; // enter greek rotor
         ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs); // through the thin reflector
-        reflector.map[i] = static_cast<char>(SubMod(inverse_greek[ch], ofs)); // and back out the greek rotor
+        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs)); // and back out the greek rotor
     }
     return reflector;
 }
 
 const rotor_t* assignRotor(const std::string& rotor) {
+    //map the roman numeral string to an int
+    std::map<char, int> roman;
+    //roman['M'] = 1000;
+    //roman['D'] = 500;
+    //roman['C'] = 100;
+    //roman['L'] = 50;
+    roman['X'] = 10; //all my numbers will be below 10
+    roman['V'] = 5;
+    roman['I'] = 1;
+    int result = 0;
+    for (int i = 0; i < rotor.size() - 1; ++i) {
+        if (roman[rotor[i]] < roman[rotor[i + 1]])
+            result -= roman[rotor[i]];
+        else
+            result += roman[rotor[i]];
+    }
+    result += roman[rotor[rotor.size() - 1]];
+    
     const rotor_t* temp;
-    switch (romanToInt(rotor)) {
+
+    switch (result) {
         case 1:
             temp = &I;
             break;
@@ -116,43 +109,52 @@ const rotor_t* assignRotor(const std::string& rotor) {
 }
 
 int main(int argc, char** args) {
-    int myMachineType;
+    int myMachineType = 0;
     printf("Enigma I/M3 or M4? Enter 3 or 4:\n");
     scanf("%d", &myMachineType);
     getchar(); //pull one newline off the input buffer
+    //check
     if (myMachineType < 3 || myMachineType > 4) {
-        printf("ERROR - machine type invalid; must be 3 for I/M3 or 4 for M4!\n");
+        printf("ERROR: machine type invalid; must be 3: I/M3 or 4: M4!\n");
         return -1;
     }
 
     char pb[40]; //max 13 pairs of letters + space 
     //prompt user for plug board settings
-    printf("Enter plugboard wiring (if any) as space separated pairs. Ex: AN BY CX: \n");
+    printf("Enter plugboard wiring (if any) as space separated pairs.\nEx: AN BY CX:\n");
     fgets(pb, sizeof (pb), stdin);
     plugboard_t myPlugboard(pb);
 
     const reflector_t* myReflector = nullptr;
     if (myMachineType == 3) {
         char reflektor;
-        printf("Enter Reflector (A, B, C):\n");
+        printf("Enter Reflector (A, B, or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
-        myReflector = M3Reflector(reflektor);
+        reflektor = toupper(reflektor);
+        if(reflektor != 'A' && reflektor != 'B' && reflektor != 'C') {
+            printf("Error - reflector must be A, B, or C.\n");
+            return -1;
+        }
+        myReflector = make_M3_Reflector(reflektor);
     }//endif machine I/M3
-
+    
     if (myMachineType == 4) {
         char reflektor, greek, greekStart;
         printf("Enter thin reflector (B or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
-        const reflector_t* thinReflector;
+        reflektor = toupper(reflektor);
+        if(reflektor != 'B' && reflektor != 'C') {
+            printf("Error - thin reflector must be B or C.\n");
+            return -1;
+        }
+        const reflector_t* thinReflector = nullptr;
         switch (reflektor) {
             case 'B':
-            case 'b':
                 thinReflector = &B_Thin;
                 break;
             case 'C':
-            case 'c':
                 thinReflector = &C_Thin;
                 break;
             default:
@@ -160,19 +162,23 @@ int main(int argc, char** args) {
                 thinReflector = &B_Thin;
                 break;
         }
-        
+
         //prompt user for greek rotor beta or gamma
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
         scanf("%c", &greek);
         getchar(); //pull one newline off the input buffer
-        const reflector_t* greekWheel;
+        greek = toupper(greek);
+        //check
+        if (greek != 'B' && greek != 'G') {
+            printf("Error - Greek Rotor must be B/G for Beta/Gamma.\n");
+            return -1;
+        }
+        const reflector_t* greekWheel = nullptr;
         switch (greek) {
             case 'B':
-            case 'b':
                 greekWheel = &Beta;
                 break;
             case 'G':
-            case 'g':
                 greekWheel = &Gamma;
                 break;
             default:
@@ -183,13 +189,30 @@ int main(int argc, char** args) {
         printf("Enter starting char of greek wheel (A-Z):\n");
         scanf("%c", &greekStart);
         getchar(); //pull one newline off the input buffer
+        greekStart = toupper(greekStart);
+        //check
+        if (greekStart < 'A' || greekStart > 'Z') {
+            printf("Error - Start of Greek wheel must be A-Z.\n");
+            return -1;
+        }
 
         int greekRing;
-        printf("Enter greek wheel ring position (Ex. 1):\n");
+        printf("Enter greek wheel ring position (1-26):\n");
         scanf("%d", &greekRing);
         getchar(); //pull one newline off the input buffer
+        //check
+        if (greekRing < 1 || greekRing > 26) {
+            printf("Error - Greek ring must be 1-26.\n");
+            return -1;
+        }
 
-        reflector_t temp = make_M4_reflector(*thinReflector, *greekWheel, greekStart, greekRing);
+        //make sure ptrs arent nullptr
+        if (thinReflector == nullptr || greekWheel == nullptr) {
+            printf("Error: thinReflector and/or greekWheel are nullptr.\n");
+            return -1;
+        }
+
+        reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel, greekStart, greekRing);
         myReflector = &temp;
     }//endif machine M4
 
@@ -206,11 +229,45 @@ int main(int argc, char** args) {
     printf("Enter space separated starting char, left to right (Ex. A A A):\n");
     scanf("%c %c %c", &leftStart, &middleStart, &rightStart);
     getchar(); //pull one newline off the input buffer
+    leftStart=toupper(leftStart);
+    middleStart=toupper(middleStart);
+    rightStart=toupper(rightStart);
+    if (leftStart < 'A' || leftStart > 'Z') {
+        printf("Error - Start of left rotor must be A-Z.\n");
+        return -1;
+    }
+    if (middleStart < 'A' || middleStart > 'Z') {
+        printf("Error - Start of middle must be A-Z.\n");
+        return -1;
+    }
+    if (rightStart < 'A' || rightStart > 'Z') {
+        printf("Error - Start of right rotor must be A-Z.\n");
+        return -1;
+    }
 
     int leftRing, middleRing, rightRing;
-    printf("Enter space separated ring position, left to right (Ex. 1 1 1):\n");
+    printf("Enter space separated ring position, left to right (1-26):\nEx:1 1 1\n");
     scanf("%d %d %d", &leftRing, &middleRing, &rightRing);
     getchar(); //pull one newline off the input buffer
+    //check
+    if (leftRing < 1 || leftRing > 26) {
+        printf("Error - left ring must be 1-26.\n");
+        return -1;
+    }
+    if (middleRing < 1 || middleRing > 26) {
+        printf("Error - middle ring must be 1-26.\n");
+        return -1;
+    }
+    if (rightRing < 1 || rightRing > 26) {
+        printf("Error - right ring must be 1-26.\n");
+        return -1;
+    }
+
+    if (myReflector == nullptr || myLeftRotor == nullptr ||
+            myMiddleRotor == nullptr || myRightRotor == nullptr) {
+        printf("Error: Reflector and/or Rotor(s) are nullptr!\n");
+        return -1;
+    }
 
     Enigma myEnigma(*myReflector, *myLeftRotor, *myMiddleRotor, *myRightRotor);
     myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
@@ -227,11 +284,12 @@ int main(int argc, char** args) {
     printf("Enter your message (256 char limit):\n");
     fgets(myMessage, 256, stdin);
 
-    //remove the null terminator
+    //remove the null terminator and make upper case
     for (int i = 0; i < sizeof (myMessage); ++i) {
         if (myMessage[i] == '\n') {
             myMessage[i] = '\0';
         }
+        myMessage[i]=toupper(myMessage[i]);
     }
 
     std::string output;
