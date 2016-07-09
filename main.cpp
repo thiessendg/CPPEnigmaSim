@@ -47,9 +47,12 @@ reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
     }
     // work out effective mapping
     for (int i = 0; i < 26; i++) {
-        int ch = greek.map[AddMod(i, ofs)]; // enter greek rotor
-        ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs); // through the thin reflector
-        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs)); // and back out the greek rotor
+        // enter greek rotor
+        int ch = greek.map[AddMod(i, ofs)];
+        // through the thin reflector
+        ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs);
+        // and back out the greek rotor
+        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
     }
     return reflector;
 }
@@ -65,13 +68,13 @@ const rotor_t* assignRotor(const std::string& rotor) {
     roman['V'] = 5;
     roman['I'] = 1;
     int result = 0;
-    for (int i = 0; i < rotor.size() - 1; ++i) {
-        if (roman[rotor[i]] < roman[rotor[i + 1]])
+    for (unsigned int i = 0; i < rotor.size() - 1; ++i) {
+        if (roman[rotor[i]] < roman[rotor[i+1]])
             result -= roman[rotor[i]];
         else
             result += roman[rotor[i]];
     }
-    result += roman[rotor[rotor.size() - 1]];
+    result += roman[rotor[rotor.size()-1]];
 
     const rotor_t* temp;
 
@@ -119,9 +122,10 @@ int main(int argc, char** args) {
         return -1;
     }
 
-    char pb[40]; //max 13 pairs of letters + space 
+    char pb[40]; //max 13 pairs of letters + space
     //prompt user for plug board settings
-    printf("Enter plugboard wiring (if any) as space separated pairs.\nEx: AN BY CX:\n");
+    printf("Enter plugboard wiring (if any) as space separated pairs.\n");
+    printf("(Ex. AN BY CX )\n");
     fgets(pb, sizeof (pb), stdin);
     plugboard_t myPlugboard(pb);
 
@@ -212,21 +216,22 @@ int main(int argc, char** args) {
             return -1;
         }
 
-        reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel, greekStart, greekRing);
+        reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel,
+                                             greekStart, greekRing);
         myReflector = &temp;
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
     char leftRoman[5], middleRoman[5], rightRoman[5];
-    printf("Enter left, middle, and right rotor roman numbers (I, II, III, etc): \n");
-    scanf("%s %s %s", leftRoman, middleRoman, rightRoman);
+    printf("Enter left, middle, right rotor numbers (I-VIII) (Ex. I II IV: \n");
+    scanf("%4s %4s %4s", leftRoman, middleRoman, rightRoman);
     getchar(); //pull one newline off the input buffer
     const rotor_t* myLeftRotor = assignRotor(leftRoman);
     const rotor_t* myMiddleRotor = assignRotor(middleRoman);
     const rotor_t* myRightRotor = assignRotor(rightRoman);
 
     char leftStart, middleStart, rightStart;
-    printf("Enter space separated starting char, left to right (Ex. A A A):\n");
+    printf("Enter starting chars (A-Z) left to right (Ex. A A A):\n");
     scanf("%c %c %c", &leftStart, &middleStart, &rightStart);
     getchar(); //pull one newline off the input buffer
     leftStart = static_cast<char> (toupper(leftStart));
@@ -246,7 +251,7 @@ int main(int argc, char** args) {
     }
 
     int leftRing, middleRing, rightRing;
-    printf("Enter space separated ring position, left to right (1-26):\nEx:1 1 1\n");
+    printf("Enter ring positions (1-26) left to right (Ex. 1 1 1):\n");
     scanf("%d %d %d", &leftRing, &middleRing, &rightRing);
     getchar(); //pull one newline off the input buffer
     //check
@@ -270,7 +275,9 @@ int main(int argc, char** args) {
     }
 
     Enigma myEnigma(*myReflector, *myLeftRotor, *myMiddleRotor, *myRightRotor);
-    myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
+    myEnigma.init(leftStart - 'A', leftRing - 1,
+                  middleStart - 'A', middleRing - 1,
+                  rightStart - 'A', rightRing - 1);
 
     printf("Beginning display:\n");
     if (myMachineType == 4) {
@@ -285,7 +292,7 @@ int main(int argc, char** args) {
     fgets(myMessage, 256, stdin);
 
     //remove the null terminator and make upper case
-    for (int i = 0; i < sizeof (myMessage); ++i) {
+    for (unsigned int i = 0; i < sizeof (myMessage); ++i) {
         if (myMessage[i] == '\n') {
             myMessage[i] = '\0';
         }

@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   plugboard.h
  * Author: dthiessen
  *
@@ -16,7 +16,7 @@
 
 struct plugboard_t {
 
-    plugboard_t(const char*p) : pairs(p) {
+    explicit plugboard_t(const char*p) : pairs(p) {
         for (int i = 0; i < 26; i++) {
             map[i] = i;
         }

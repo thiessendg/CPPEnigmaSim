@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   wheel.h
  * Author: dthiessen
  *
@@ -18,14 +18,14 @@
 #include "AddSubMod.h"
 
 struct wheel_t {
-    wheel_t(const rotor_t);
+    explicit wheel_t(const rotor_t&);
     bool knocks() const;
     void advance();
     int enter(int ch, int prev_ofs) const;
     int exit(int ch, int prev_ofs) const;
     const rotor_t rotor;
     int ofs;
-    int notches[2];
+    int notches[2] = {0,0};
 };
 #endif /* WHEEL_H */
 
