@@ -1,14 +1,14 @@
 #include <string>
 #include <vector>
-#include <cstdio>
+//#include <cstdio>
 #include <cassert>
 #include <map>
-#include <time.h>
+//#include <time.h>
 #include "reflector.h"
 #include "rotor.h"
 #include "Enigma.h"
 #include "plugboard.h"
-#include "AddSubMod.h"
+//#include "AddSubMod.h"
 #include "constants.h"
 
 int romanToInt(const std::string& s) {
@@ -59,7 +59,7 @@ reflector_t make_M4_reflector(const reflector_t& thin, const reflector_t& greek,
         char ofs, int ring) {
     reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
-    ofs = SubMod(ofs, ring - 1);
+    ofs = static_cast<char>(SubMod(ofs, ring - 1));
 
     // make the inverse of the mappings
     int inverse_thin[26], inverse_greek[26];
@@ -75,7 +75,7 @@ reflector_t make_M4_reflector(const reflector_t& thin, const reflector_t& greek,
     for (int i = 0; i < 26; i++) {
         int ch = greek.map[AddMod(i, ofs)]; // enter greek rotor
         ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs); // through the thin reflector
-        reflector.map[i] = SubMod(inverse_greek[ch], ofs); // and back out the greek rotor
+        reflector.map[i] = static_cast<char>(SubMod(inverse_greek[ch], ofs)); // and back out the greek rotor
     }
     return reflector;
 }
@@ -216,6 +216,9 @@ int main(int argc, char** args) {
     myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
 
     printf("Beginning display:\n");
+    if (myMachineType == 4) {
+        printf("%c ", myEnigma.getReflector().name.back());
+    }
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
@@ -238,7 +241,7 @@ int main(int argc, char** args) {
         assert(ch >= 0 && ch < 26);
         ch = myEnigma.code(ch);
         assert(ch >= 0 && ch < 26);
-        const int check = myPlugboard.map[myEnigma.code(ch)] + 'A';
+        //const int check = myPlugboard.map[myEnigma.code(ch)] + 'A';
         ch = myPlugboard.map[ch];
         output += ch + 'A';
     } //end for msg
@@ -247,6 +250,9 @@ int main(int argc, char** args) {
     printf("encoded:  \n\t%s\n", output.c_str());
 
     printf("Ending display:\n");
+    if (myMachineType == 4) {
+        printf("%c ", myEnigma.getReflector().name.back());
+    }
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');

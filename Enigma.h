@@ -35,6 +35,7 @@ public:
     int getLeftOfs() const;
     int getMiddleOfs() const;
     int getRightOfs() const;
+    reflector_t getReflector() const;
     virtual ~Enigma();
 private:
     reflector_t reflector;

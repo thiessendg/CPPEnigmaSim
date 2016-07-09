@@ -73,7 +73,9 @@ int Enigma::getMiddleOfs() const {
 int Enigma::getRightOfs() const {
     return right.ofs;
 }
-
+reflector_t Enigma::getReflector() const {
+    return reflector;
+}
 /*
 Enigma::Enigma(const Enigma& orig) {
     //copy ctor
