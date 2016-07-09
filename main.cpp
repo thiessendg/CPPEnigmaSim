@@ -2,7 +2,7 @@
 #include <vector>
 #include <cassert>
 #include <map>
-#include <cctype>
+//#include <cctype>
 #include "reflector.h"
 #include "rotor.h"
 #include "Enigma.h"
@@ -131,7 +131,7 @@ int main(int argc, char** args) {
         printf("Enter Reflector (A, B, or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
-        reflektor = toupper(reflektor);
+        reflektor = static_cast<char> (toupper(reflektor));
         if(reflektor != 'A' && reflektor != 'B' && reflektor != 'C') {
             printf("Error - reflector must be A, B, or C.\n");
             return -1;
@@ -144,7 +144,7 @@ int main(int argc, char** args) {
         printf("Enter thin reflector (B or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
-        reflektor = toupper(reflektor);
+        reflektor = static_cast<char>(toupper(reflektor));
         if(reflektor != 'B' && reflektor != 'C') {
             printf("Error - thin reflector must be B or C.\n");
             return -1;
@@ -167,7 +167,7 @@ int main(int argc, char** args) {
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
         scanf("%c", &greek);
         getchar(); //pull one newline off the input buffer
-        greek = toupper(greek);
+        greek = static_cast<char>(toupper(greek));
         //check
         if (greek != 'B' && greek != 'G') {
             printf("Error - Greek Rotor must be B/G for Beta/Gamma.\n");
@@ -189,7 +189,7 @@ int main(int argc, char** args) {
         printf("Enter starting char of greek wheel (A-Z):\n");
         scanf("%c", &greekStart);
         getchar(); //pull one newline off the input buffer
-        greekStart = toupper(greekStart);
+        greekStart = static_cast<char>(toupper(greekStart));
         //check
         if (greekStart < 'A' || greekStart > 'Z') {
             printf("Error - Start of Greek wheel must be A-Z.\n");
@@ -229,9 +229,9 @@ int main(int argc, char** args) {
     printf("Enter space separated starting char, left to right (Ex. A A A):\n");
     scanf("%c %c %c", &leftStart, &middleStart, &rightStart);
     getchar(); //pull one newline off the input buffer
-    leftStart=toupper(leftStart);
-    middleStart=toupper(middleStart);
-    rightStart=toupper(rightStart);
+    leftStart = static_cast<char>(toupper(leftStart));
+    middleStart = static_cast<char>(toupper(middleStart));
+    rightStart = static_cast<char>(toupper(rightStart));
     if (leftStart < 'A' || leftStart > 'Z') {
         printf("Error - Start of left rotor must be A-Z.\n");
         return -1;
@@ -289,7 +289,7 @@ int main(int argc, char** args) {
         if (myMessage[i] == '\n') {
             myMessage[i] = '\0';
         }
-        myMessage[i]=toupper(myMessage[i]);
+        myMessage[i]= static_cast<char> (toupper(myMessage[i]));
     }
 
     std::string output;
