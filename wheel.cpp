@@ -7,6 +7,8 @@
 #include "wheel.h"
 
 wheel_t::wheel_t(const rotor_t& r) : rotor(r), ofs(0){
+	notches[0] = 0;
+	notches[1] = 0;
 }
 
 bool wheel_t::knocks() const {
