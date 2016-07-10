@@ -1,8 +1,8 @@
 #include <string>
-#include <vector>
+//#include <vector>
 #include <cassert>
 #include <map>
-#include <cctype>
+//#include <cctype>
 #include "reflector.h"
 #include "rotor.h"
 #include "Enigma.h"
