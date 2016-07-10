@@ -25,7 +25,7 @@ struct wheel_t {
     int exit(int ch, int prev_ofs) const;
     const rotor_t rotor;
     int ofs;
-    int notches[2] = {0,0};
+    int notches[2];
 };
 #endif /* WHEEL_H */
 
