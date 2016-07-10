@@ -129,7 +129,7 @@ int main(int argc, char** args) {
     fgets(pb, sizeof (pb), stdin);
     plugboard_t myPlugboard(pb);
 
-    const reflector_t* myReflector;
+    const reflector_t* myReflector = nullptr;
     if (myMachineType == 3) {
         char reflektor;
         printf("Enter Reflector (A, B, or C):\n");
@@ -218,7 +218,7 @@ int main(int argc, char** args) {
 
         reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel,
                                              greekStart, greekRing);
-		myReflector = &temp;
+		myReflector = const_cast<reflector_t*>(&temp);
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
@@ -280,9 +280,9 @@ int main(int argc, char** args) {
                   rightStart - 'A', rightRing - 1);
 
     printf("Beginning display:\n");
-    if (myMachineType == 4) {
-        printf("%c ", myEnigma.getReflector().name.back());
-    }
+    //if (myMachineType == 4) {
+    //    printf("%c ", myEnigma.getReflector().name.back());
+    //}
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
@@ -315,9 +315,9 @@ int main(int argc, char** args) {
     printf("encoded:  \n\t%s\n", output.c_str());
 
     printf("Ending display:\n");
-    if (myMachineType == 4) {
-        printf("%c ", myEnigma.getReflector().name.back());
-    }
+    //if (myMachineType == 4) {
+    //    printf("%c ", myEnigma.getReflector().name.back());
+    //}
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
