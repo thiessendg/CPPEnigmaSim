@@ -129,7 +129,7 @@ int main(int argc, char** args) {
     fgets(pb, sizeof (pb), stdin);
     plugboard_t myPlugboard(pb);
 
-    const reflector_t* myReflector = nullptr;
+    const reflector_t* myReflector;
     if (myMachineType == 3) {
         char reflektor;
         printf("Enter Reflector (A, B, or C):\n");
@@ -153,7 +153,7 @@ int main(int argc, char** args) {
             printf("Error - thin reflector must be B or C.\n");
             return -1;
         }
-        const reflector_t* thinReflector = nullptr;
+        const reflector_t* thinReflector;
         switch (reflektor) {
             case 'B':
                 thinReflector = &B_Thin;
@@ -177,7 +177,7 @@ int main(int argc, char** args) {
             printf("Error - Greek Rotor must be B/G for Beta/Gamma.\n");
             return -1;
         }
-        const reflector_t* greekWheel = nullptr;
+        const reflector_t* greekWheel;
         switch (greek) {
             case 'B':
                 greekWheel = &Beta;
@@ -218,7 +218,7 @@ int main(int argc, char** args) {
 
         reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel,
                                              greekStart, greekRing);
-        myReflector = &temp;
+		myReflector = &temp;
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
