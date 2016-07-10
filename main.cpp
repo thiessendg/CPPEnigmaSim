@@ -29,9 +29,8 @@ const reflector_t* make_M3_Reflector(const char& reflector) {
     return temp;
 }
 
-reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
-        char ofs, int ring) {
-    reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
+void make_M4_Reflector(reflector_t* reflector, const reflector_t& thin, const reflector_t& greek, char ofs, int ring) {
+    *reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
     ofs = static_cast<char> (SubMod(ofs, ring - 1));
 
@@ -52,9 +51,9 @@ reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
         // through the thin reflector
         ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs);
         // and back out the greek rotor
-        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
+        reflector->map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
     }
-    return reflector;
+    //return &reflector;
 }
 
 const rotor_t* assignRotor(const std::string& rotor) {
@@ -126,12 +125,12 @@ int main(int argc, char** args) {
     //prompt user for plug board settings
     printf("Enter plugboard wiring (if any) as space separated pairs.\n");
     printf("(Ex. AN BY CX )\n");
-    fgets(pb, sizeof (pb), stdin);
+    fgets(pb, sizeof pb, stdin);
     plugboard_t myPlugboard(pb);
 
     const reflector_t* myReflector = nullptr;
+	char reflektor;
     if (myMachineType == 3) {
-        char reflektor;
         printf("Enter Reflector (A, B, or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
@@ -144,7 +143,6 @@ int main(int argc, char** args) {
     }//endif machine I/M3
 
     if (myMachineType == 4) {
-        char reflektor, greek, greekStart;
         printf("Enter thin reflector (B or C):\n");
         scanf("%c", &reflektor);
         getchar(); //pull one newline off the input buffer
@@ -166,7 +164,7 @@ int main(int argc, char** args) {
                 thinReflector = &B_Thin;
                 break;
         }
-
+		char greek, greekStart;
         //prompt user for greek rotor beta or gamma
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
         scanf("%c", &greek);
@@ -216,9 +214,7 @@ int main(int argc, char** args) {
             return -1;
         }
 
-        reflector_t temp = make_M4_Reflector(*thinReflector, *greekWheel,
-                                             greekStart, greekRing);
-		myReflector = const_cast<reflector_t*>(&temp);
+		make_M4_Reflector(const_cast<reflector_t*>(myReflector), *thinReflector, *greekWheel, greekStart, greekRing);
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
