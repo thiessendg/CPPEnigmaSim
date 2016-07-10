@@ -15,7 +15,7 @@
 #include <string>
 
 struct reflector_t {
-    const std::string name;
+    std::string name;
     char map[26];
 };
 
