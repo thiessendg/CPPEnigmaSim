@@ -9,7 +9,7 @@
 #include "plugboard.h"
 #include "constants.h"
 
-const reflector_t* make_M3_Reflector(const char& reflector) {
+reflector_t make_M3_Reflector(const char& reflector) {
     const reflector_t* temp;
     switch (reflector) {
         case 'A':
@@ -26,11 +26,11 @@ const reflector_t* make_M3_Reflector(const char& reflector) {
             temp = &B;
             break;
     }
-    return temp;
+    return *temp;
 }
 
-void make_M4_Reflector(reflector_t* reflector, const reflector_t& thin, const reflector_t& greek, char ofs, int ring) {
-    *reflector = {thin.name + ":" + greek.name + ":" + ofs};
+reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek, char ofs, int ring) {
+    reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
     ofs = static_cast<char> (SubMod(ofs, ring - 1));
 
@@ -51,19 +51,19 @@ void make_M4_Reflector(reflector_t* reflector, const reflector_t& thin, const re
         // through the thin reflector
         ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs);
         // and back out the greek rotor
-        reflector->map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
+        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
     }
-    //return &reflector;
+    return reflector;
 }
 
-const rotor_t* assignRotor(const std::string& rotor) {
+rotor_t assignRotor(const std::string& rotor) {
     //map the roman numeral string to an int
     std::map<char, int> roman;
     //roman['M'] = 1000;
     //roman['D'] = 500;
     //roman['C'] = 100;
     //roman['L'] = 50;
-    roman['X'] = 10; //all my numbers will be below 10
+    //roman['X'] = 10; //all my numbers will be below 10, max 8
     roman['V'] = 5;
     roman['I'] = 1;
     int result = 0;
@@ -76,38 +76,37 @@ const rotor_t* assignRotor(const std::string& rotor) {
     result += roman[rotor[rotor.size()-1]];
 
     const rotor_t* temp;
-
     switch (result) {
         case 1:
             temp = &I;
             break;
         case 2:
-            temp = &II;
+			temp = &II;
             break;
         case 3:
-            temp = &III;
+			temp = &III;
             break;
         case 4:
-            temp = &IV;
+			temp = &IV;
             break;
         case 5:
-            temp = &V;
+			temp = &V;
             break;
         case 6:
-            temp = &VI;
+			temp = &VI;
             break;
         case 7:
-            temp = &VII;
+			temp = &VII;
             break;
         case 8:
-            temp = &VIII;
+			temp = &VIII;
             break;
         default:
             printf("Error - Wheel notation invalid. Defaulting to I.\n");
-            temp = &I;
+			temp = &I;
             break;
     }
-    return temp;
+	return *temp;
 }
 
 int main(int argc, char** args) {
@@ -115,7 +114,6 @@ int main(int argc, char** args) {
     printf("Enigma I/M3 or M4? Enter 3 or 4:\n");
     scanf("%d", &myMachineType);
     getchar(); //pull one newline off the input buffer
-    //check
     if (myMachineType < 3 || myMachineType > 4) {
         printf("ERROR: machine type invalid; must be 3: I/M3 or 4: M4!\n");
         return -1;
@@ -128,8 +126,9 @@ int main(int argc, char** args) {
     fgets(pb, sizeof pb, stdin);
     plugboard_t myPlugboard(pb);
 
-    const reflector_t* myReflector = nullptr;
-	char reflektor;
+	reflector_t myReflector, thinReflector, greekWheel;
+	char reflektor, greekLetter, greekStart;
+	int greekRing;
     if (myMachineType == 3) {
         printf("Enter Reflector (A, B, or C):\n");
         scanf("%c", &reflektor);
@@ -141,7 +140,6 @@ int main(int argc, char** args) {
         }
         myReflector = make_M3_Reflector(reflektor);
     }//endif machine I/M3
-
     if (myMachineType == 4) {
         printf("Enter thin reflector (B or C):\n");
         scanf("%c", &reflektor);
@@ -151,70 +149,55 @@ int main(int argc, char** args) {
             printf("Error - thin reflector must be B or C.\n");
             return -1;
         }
-        const reflector_t* thinReflector;
         switch (reflektor) {
             case 'B':
-                thinReflector = &B_Thin;
+                thinReflector = B_Thin;
                 break;
             case 'C':
-                thinReflector = &C_Thin;
+                thinReflector = C_Thin;
                 break;
             default:
                 printf("Thin reflector value invalid; defaulting to thin B.\n");
-                thinReflector = &B_Thin;
+                thinReflector = B_Thin;
                 break;
         }
-		char greek, greekStart;
         //prompt user for greek rotor beta or gamma
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
-        scanf("%c", &greek);
+        scanf("%c", &greekLetter);
         getchar(); //pull one newline off the input buffer
-        greek = static_cast<char> (toupper(greek));
-        //check
-        if (greek != 'B' && greek != 'G') {
+        greekLetter = static_cast<char> (toupper(greekLetter));
+        if (greekLetter != 'B' && greekLetter != 'G') {
             printf("Error - Greek Rotor must be B/G for Beta/Gamma.\n");
             return -1;
         }
-        const reflector_t* greekWheel;
-        switch (greek) {
+        switch (greekLetter) {
             case 'B':
-                greekWheel = &Beta;
+                greekWheel = Beta;
                 break;
             case 'G':
-                greekWheel = &Gamma;
+                greekWheel = Gamma;
                 break;
             default:
                 printf("Greek rotor value invalid; defaulting to Beta.\n");
-                greekWheel = &Beta;
+                greekWheel = Beta;
                 break;
         }
         printf("Enter starting char of greek wheel (A-Z):\n");
         scanf("%c", &greekStart);
         getchar(); //pull one newline off the input buffer
         greekStart = static_cast<char> (toupper(greekStart));
-        //check
         if (greekStart < 'A' || greekStart > 'Z') {
             printf("Error - Start of Greek wheel must be A-Z.\n");
             return -1;
         }
-
-        int greekRing;
         printf("Enter greek wheel ring position (1-26):\n");
         scanf("%d", &greekRing);
         getchar(); //pull one newline off the input buffer
-        //check
         if (greekRing < 1 || greekRing > 26) {
             printf("Error - Greek ring must be 1-26.\n");
             return -1;
         }
-
-        //make sure ptrs arent nullptr
-        if (thinReflector == nullptr || greekWheel == nullptr) {
-            printf("Error: thinReflector and/or greekWheel are nullptr.\n");
-            return -1;
-        }
-
-		make_M4_Reflector(const_cast<reflector_t*>(myReflector), *thinReflector, *greekWheel, greekStart, greekRing);
+		myReflector = make_M4_Reflector(thinReflector, greekWheel, greekStart, greekRing);
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
@@ -222,9 +205,9 @@ int main(int argc, char** args) {
     printf("Enter left, middle, right rotor numbers (I-VIII) (Ex. I II IV: \n");
     scanf("%4s %4s %4s", leftRoman, middleRoman, rightRoman);
     getchar(); //pull one newline off the input buffer
-    const rotor_t* myLeftRotor = assignRotor(leftRoman);
-    const rotor_t* myMiddleRotor = assignRotor(middleRoman);
-    const rotor_t* myRightRotor = assignRotor(rightRoman);
+    rotor_t myLeftRotor = assignRotor(leftRoman);
+	rotor_t myMiddleRotor = assignRotor(middleRoman);
+	rotor_t myRightRotor = assignRotor(rightRoman);
 
     char leftStart, middleStart, rightStart;
     printf("Enter starting chars (A-Z) left to right (Ex. A A A):\n");
@@ -264,21 +247,13 @@ int main(int argc, char** args) {
         return -1;
     }
 
-    if (myReflector == nullptr || myLeftRotor == nullptr ||
-            myMiddleRotor == nullptr || myRightRotor == nullptr) {
-        printf("Error: Reflector and/or Rotor(s) are nullptr!\n");
-        return -1;
+	Enigma myEnigma(myReflector, myLeftRotor, myMiddleRotor, myRightRotor);
+	myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
+    
+	printf("Beginning display:\n");
+    if (myMachineType == 4) {
+        printf("%c ", myEnigma.getReflector().name.back());
     }
-
-    Enigma myEnigma(*myReflector, *myLeftRotor, *myMiddleRotor, *myRightRotor);
-    myEnigma.init(leftStart - 'A', leftRing - 1,
-                  middleStart - 'A', middleRing - 1,
-                  rightStart - 'A', rightRing - 1);
-
-    printf("Beginning display:\n");
-    //if (myMachineType == 4) {
-    //    printf("%c ", myEnigma.getReflector().name.back());
-    //}
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
@@ -311,9 +286,9 @@ int main(int argc, char** args) {
     printf("encoded:  \n\t%s\n", output.c_str());
 
     printf("Ending display:\n");
-    //if (myMachineType == 4) {
-    //    printf("%c ", myEnigma.getReflector().name.back());
-    //}
+    if (myMachineType == 4) {
+        printf("%c ", myEnigma.getReflector().name.back());
+    }
     printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
             AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
             AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
