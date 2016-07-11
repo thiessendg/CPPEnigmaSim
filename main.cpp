@@ -1,8 +1,6 @@
 #include <string>
-//#include <vector>
 #include <cassert>
 #include <map>
-//#include <cctype>
 #include "reflector.h"
 #include "rotor.h"
 #include "Enigma.h"
@@ -10,26 +8,27 @@
 #include "constants.h"
 
 reflector_t make_M3_Reflector(const char& reflector) {
-    const reflector_t* temp;
+    const reflector_t* pReflector;
     switch (reflector) {
         case 'A':
-            temp = &A;
+            pReflector = &A;
             break;
         case 'B':
-            temp = &B;
+            pReflector = &B;
             break;
         case 'C':
-            temp = &C;
+            pReflector = &C;
             break;
         default:
             printf("Reflector value invalid; defaulting to B reflector.\n");
-            temp = &B;
+            pReflector = &B;
             break;
     }
-    return *temp;
+    return *pReflector;
 }
 
-reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek, char ofs, int ring) {
+reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek, 
+        char ofs, int ring) {
     reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
     ofs = static_cast<char> (SubMod(ofs, ring - 1));
@@ -68,48 +67,48 @@ rotor_t assignRotor(const std::string& rotor) {
     roman['I'] = 1;
     int result = 0;
     for (unsigned int i = 0; i < rotor.size() - 1; ++i) {
-        if (roman[rotor[i]] < roman[rotor[i+1]])
+        if (roman[rotor[i]] < roman[rotor[i + 1]])
             result -= roman[rotor[i]];
         else
             result += roman[rotor[i]];
     }
-    result += roman[rotor[rotor.size()-1]];
+    result += roman[rotor[rotor.size() - 1]];
 
-    const rotor_t* temp;
+    const rotor_t* pRotor;
     switch (result) {
         case 1:
-            temp = &I;
+            pRotor = &I;
             break;
         case 2:
-			temp = &II;
+            pRotor = &II;
             break;
         case 3:
-			temp = &III;
+            pRotor = &III;
             break;
         case 4:
-			temp = &IV;
+            pRotor = &IV;
             break;
         case 5:
-			temp = &V;
+            pRotor = &V;
             break;
         case 6:
-			temp = &VI;
+            pRotor = &VI;
             break;
         case 7:
-			temp = &VII;
+            pRotor = &VII;
             break;
         case 8:
-			temp = &VIII;
+            pRotor = &VIII;
             break;
         default:
             printf("Error - Wheel notation invalid. Defaulting to I.\n");
-			temp = &I;
+            pRotor = &I;
             break;
     }
-	return *temp;
+    return *pRotor;
 }
 
-int main(int argc, char** args) {
+int main(int argc, char* args[]) {
     int myMachineType = 0;
     printf("Enigma I/M3 or M4? Enter 3 or 4:\n");
     scanf("%d", &myMachineType);
@@ -119,16 +118,16 @@ int main(int argc, char** args) {
         return -1;
     }
 
-    char pb[40]; //max 13 pairs of letters + space
+    char plugPairs[40]; //max 13 pairs of letters + space
     //prompt user for plug board settings
     printf("Enter plugboard wiring (if any) as space separated pairs.\n");
     printf("(Ex. AN BY CX )\n");
-    fgets(pb, sizeof pb, stdin);
-    plugboard_t myPlugboard(pb);
+    fgets(plugPairs, sizeof plugPairs, stdin);
+    plugboard_t myPlugboard(plugPairs);
 
-	reflector_t myReflector, thinReflector, greekWheel;
-	char reflektor, greekLetter, greekStart;
-	int greekRing;
+    reflector_t myReflector, thinReflector, grWheel;
+    char reflektor, grLetter, grStart;
+    int grRing;
     if (myMachineType == 3) {
         printf("Enter Reflector (A, B, or C):\n");
         scanf("%c", &reflektor);
@@ -163,41 +162,41 @@ int main(int argc, char** args) {
         }
         //prompt user for greek rotor beta or gamma
         printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
-        scanf("%c", &greekLetter);
+        scanf("%c", &grLetter);
         getchar(); //pull one newline off the input buffer
-        greekLetter = static_cast<char> (toupper(greekLetter));
-        if (greekLetter != 'B' && greekLetter != 'G') {
+        grLetter = static_cast<char> (toupper(grLetter));
+        if (grLetter != 'B' && grLetter != 'G') {
             printf("Error - Greek Rotor must be B/G for Beta/Gamma.\n");
             return -1;
         }
-        switch (greekLetter) {
+        switch (grLetter) {
             case 'B':
-                greekWheel = Beta;
+                grWheel = Beta;
                 break;
             case 'G':
-                greekWheel = Gamma;
+                grWheel = Gamma;
                 break;
             default:
                 printf("Greek rotor value invalid; defaulting to Beta.\n");
-                greekWheel = Beta;
+                grWheel = Beta;
                 break;
         }
         printf("Enter starting char of greek wheel (A-Z):\n");
-        scanf("%c", &greekStart);
+        scanf("%c", &grStart);
         getchar(); //pull one newline off the input buffer
-        greekStart = static_cast<char> (toupper(greekStart));
-        if (greekStart < 'A' || greekStart > 'Z') {
+        grStart = static_cast<char> (toupper(grStart));
+        if (grStart < 'A' || grStart > 'Z') {
             printf("Error - Start of Greek wheel must be A-Z.\n");
             return -1;
         }
         printf("Enter greek wheel ring position (1-26):\n");
-        scanf("%d", &greekRing);
+        scanf("%d", &grRing);
         getchar(); //pull one newline off the input buffer
-        if (greekRing < 1 || greekRing > 26) {
+        if (grRing < 1 || grRing > 26) {
             printf("Error - Greek ring must be 1-26.\n");
             return -1;
         }
-		myReflector = make_M4_Reflector(thinReflector, greekWheel, greekStart, greekRing);
+        myReflector = make_M4_Reflector(thinReflector, grWheel, grStart, grRing);
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
@@ -206,61 +205,62 @@ int main(int argc, char** args) {
     scanf("%4s %4s %4s", leftRoman, middleRoman, rightRoman);
     getchar(); //pull one newline off the input buffer
     rotor_t myLeftRotor = assignRotor(leftRoman);
-	rotor_t myMiddleRotor = assignRotor(middleRoman);
-	rotor_t myRightRotor = assignRotor(rightRoman);
+    rotor_t myMiddleRotor = assignRotor(middleRoman);
+    rotor_t myRightRotor = assignRotor(rightRoman);
 
-    char leftStart, middleStart, rightStart;
+    char lStart, mStart, rStart;
     printf("Enter starting chars (A-Z) left to right (Ex. A A A):\n");
-    scanf("%c %c %c", &leftStart, &middleStart, &rightStart);
+    scanf("%c %c %c", &lStart, &mStart, &rStart);
     getchar(); //pull one newline off the input buffer
-    leftStart = static_cast<char> (toupper(leftStart));
-    middleStart = static_cast<char> (toupper(middleStart));
-    rightStart = static_cast<char> (toupper(rightStart));
-    if (leftStart < 'A' || leftStart > 'Z') {
+    lStart = static_cast<char> (toupper(lStart));
+    mStart = static_cast<char> (toupper(mStart));
+    rStart = static_cast<char> (toupper(rStart));
+    if (lStart < 'A' || lStart > 'Z') {
         printf("Error - Start of left rotor must be A-Z.\n");
         return -1;
     }
-    if (middleStart < 'A' || middleStart > 'Z') {
+    if (mStart < 'A' || mStart > 'Z') {
         printf("Error - Start of middle must be A-Z.\n");
         return -1;
     }
-    if (rightStart < 'A' || rightStart > 'Z') {
+    if (rStart < 'A' || rStart > 'Z') {
         printf("Error - Start of right rotor must be A-Z.\n");
         return -1;
     }
 
-    int leftRing, middleRing, rightRing;
+    int lRing, mRing, rRing;
     printf("Enter ring positions (1-26) left to right (Ex. 1 1 1):\n");
-    scanf("%d %d %d", &leftRing, &middleRing, &rightRing);
+    scanf("%d %d %d", &lRing, &mRing, &rRing);
     getchar(); //pull one newline off the input buffer
     //check
-    if (leftRing < 1 || leftRing > 26) {
+    if (lRing < 1 || lRing > 26) {
         printf("Error - left ring must be 1-26.\n");
         return -1;
     }
-    if (middleRing < 1 || middleRing > 26) {
+    if (mRing < 1 || mRing > 26) {
         printf("Error - middle ring must be 1-26.\n");
         return -1;
     }
-    if (rightRing < 1 || rightRing > 26) {
+    if (rRing < 1 || rRing > 26) {
         printf("Error - right ring must be 1-26.\n");
         return -1;
     }
 
-	Enigma myEnigma(myReflector, myLeftRotor, myMiddleRotor, myRightRotor);
-	myEnigma.init(leftStart - 'A', leftRing - 1, middleStart - 'A', middleRing - 1, rightStart - 'A', rightRing - 1);
-    
-	printf("Beginning display:\n");
+    Enigma myEnigma(myReflector, myLeftRotor, myMiddleRotor, myRightRotor);
+    myEnigma.init(lStart - 'A', lRing - 1, mStart - 'A', mRing - 1, rStart - 'A', 
+            rRing - 1);
+
+    printf("Beginning display:\n");
     if (myMachineType == 4) {
         printf("%c ", myEnigma.getReflector().name.back());
     }
-    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
-            AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
-            AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), lRing - 1) + 'A',
+            AddMod(myEnigma.getMiddleOfs(), mRing - 1) + 'A',
+            AddMod(myEnigma.getRightOfs(), rRing - 1) + 'A');
 
     char myMessage[256]; //read somewhere messages were <= 250
     printf("Enter your message (256 char limit):\n");
-    fgets(myMessage, 256, stdin);
+    fgets(myMessage, sizeof myMessage, stdin);
 
     //remove the null terminator and make upper case
     for (unsigned int i = 0; i < sizeof (myMessage); ++i) {
@@ -289,9 +289,9 @@ int main(int argc, char** args) {
     if (myMachineType == 4) {
         printf("%c ", myEnigma.getReflector().name.back());
     }
-    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), leftRing - 1) + 'A',
-            AddMod(myEnigma.getMiddleOfs(), middleRing - 1) + 'A',
-            AddMod(myEnigma.getRightOfs(), rightRing - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), lRing - 1) + 'A',
+            AddMod(myEnigma.getMiddleOfs(), mRing - 1) + 'A',
+            AddMod(myEnigma.getRightOfs(), rRing - 1) + 'A');
 
     return 0;
 }
