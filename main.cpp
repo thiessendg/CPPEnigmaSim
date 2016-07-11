@@ -8,7 +8,7 @@
 #include "constants.h"
 
 reflector_t make_M3_Reflector(const char& reflector) {
-    const reflector_t* pReflector = nullptr;
+    const reflector_t* pReflector;
     switch (reflector) {
         case 'A':
             pReflector = &A;
@@ -74,7 +74,7 @@ rotor_t assignRotor(const std::string& rotor) {
     }
     result += roman[rotor[rotor.size() - 1]];
 
-    const rotor_t* pRotor = nullptr;
+    const rotor_t* pRotor;
     switch (result) {
         case 1:
             pRotor = &I;
