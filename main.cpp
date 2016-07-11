@@ -27,7 +27,7 @@ reflector_t make_M3_Reflector(const char& reflector) {
     return *pReflector;
 }
 
-reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek, 
+reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
         char ofs, int ring) {
     reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
     ofs -= 'A';
@@ -247,16 +247,16 @@ int main(int argc, char* args[]) {
     }
 
     Enigma myEnigma(myReflector, myLeftRotor, myMiddleRotor, myRightRotor);
-    myEnigma.init(lStart - 'A', lRing - 1, mStart - 'A', mRing - 1, rStart - 'A', 
+    myEnigma.init(lStart - 'A', lRing - 1, mStart - 'A', mRing - 1, rStart - 'A',
             rRing - 1);
 
     printf("Beginning display:\n");
     if (myMachineType == 4) {
-        printf("%c ", myEnigma.getReflector().name.back());
+        printf("%c ", myEnigma.reflector.name.back());
     }
-    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), lRing - 1) + 'A',
-            AddMod(myEnigma.getMiddleOfs(), mRing - 1) + 'A',
-            AddMod(myEnigma.getRightOfs(), rRing - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
+            AddMod(myEnigma.middle.ofs, mRing - 1) + 'A',
+            AddMod(myEnigma.right.ofs, rRing - 1) + 'A');
 
     char myMessage[256]; //read somewhere messages were <= 250
     printf("Enter your message (256 char limit):\n");
@@ -277,7 +277,6 @@ int main(int argc, char* args[]) {
         assert(ch >= 0 && ch < 26);
         ch = myEnigma.code(ch);
         assert(ch >= 0 && ch < 26);
-        //const int check = myPlugboard.map[myEnigma.code(ch)] + 'A';
         ch = myPlugboard.map[ch];
         output += ch + 'A';
     } //end for msg
@@ -287,11 +286,11 @@ int main(int argc, char* args[]) {
 
     printf("Ending display:\n");
     if (myMachineType == 4) {
-        printf("%c ", myEnigma.getReflector().name.back());
+        printf("%c ", myEnigma.reflector.name.back());
     }
-    printf("%c %c %c\n", AddMod(myEnigma.getLeftOfs(), lRing - 1) + 'A',
-            AddMod(myEnigma.getMiddleOfs(), mRing - 1) + 'A',
-            AddMod(myEnigma.getRightOfs(), rRing - 1) + 'A');
+    printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
+            AddMod(myEnigma.middle.ofs, mRing - 1) + 'A',
+            AddMod(myEnigma.right.ofs, rRing - 1) + 'A');
 
     return 0;
 }
