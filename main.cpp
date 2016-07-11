@@ -8,7 +8,7 @@
 #include "constants.h"
 
 reflector_t make_M3_Reflector(const char& reflector) {
-    const reflector_t* pReflector;
+    const reflector_t* pReflector = nullptr;
     switch (reflector) {
         case 'A':
             pReflector = &A;
@@ -74,7 +74,7 @@ rotor_t assignRotor(const std::string& rotor) {
     }
     result += roman[rotor[rotor.size() - 1]];
 
-    const rotor_t* pRotor;
+    const rotor_t* pRotor = nullptr;
     switch (result) {
         case 1:
             pRotor = &I;
@@ -120,8 +120,8 @@ int main(int argc, char* args[]) {
 
     char plugPairs[40]; //max 13 pairs of letters + space
     //prompt user for plug board settings
-    printf("Enter plugboard wiring (if any) as space separated pairs.\n");
-    printf("(Ex. AN BY CX )\n");
+    printf("Enter plugboard wiring (if any) as space separated pairs");
+    printf(" (Ex. AN BY CX ):\n");
     fgets(plugPairs, sizeof plugPairs, stdin);
     plugboard_t myPlugboard(plugPairs);
 
@@ -161,7 +161,7 @@ int main(int argc, char* args[]) {
                 break;
         }
         //prompt user for greek rotor beta or gamma
-        printf("Enter Greek Rotor (B or G (Beta,Gamma):\n");
+        printf("Enter Greek Rotor ([B]eta or [G]amma):\n");
         scanf("%c", &grLetter);
         getchar(); //pull one newline off the input buffer
         grLetter = static_cast<char> (toupper(grLetter));
@@ -209,7 +209,7 @@ int main(int argc, char* args[]) {
     rotor_t myRightRotor = assignRotor(rightRoman);
 
     char lStart, mStart, rStart;
-    printf("Enter starting chars (A-Z) left to right (Ex. A A A):\n");
+    printf("Enter starting chars, msg key, (A-Z) left to right (Ex. A A A):\n");
     scanf("%c %c %c", &lStart, &mStart, &rStart);
     getchar(); //pull one newline off the input buffer
     lStart = static_cast<char> (toupper(lStart));
