@@ -252,7 +252,9 @@ int main(int argc, char* args[]) {
 
     printf("Beginning display:\n");
     if (myMachineType == 4) {
-        printf("%c ", myEnigma.reflector.name.back());
+        //printf("%c ", myEnigma.reflector.name.back());//c++11 only
+        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length()-1));
+
     }
     printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
             AddMod(myEnigma.middle.ofs, mRing - 1) + 'A',
@@ -286,7 +288,8 @@ int main(int argc, char* args[]) {
 
     printf("Ending display:\n");
     if (myMachineType == 4) {
-        printf("%c ", myEnigma.reflector.name.back());
+        //printf("%c ", myEnigma.reflector.name.back());//c++11 only
+        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length()-1));
     }
     printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
             AddMod(myEnigma.middle.ofs, mRing - 1) + 'A',
