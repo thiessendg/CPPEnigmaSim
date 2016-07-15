@@ -1,4 +1,4 @@
-#include <string>
+﻿#include <string>
 #include <cassert>
 #include <map>
 #include "reflector.h"
@@ -7,31 +7,32 @@
 #include "plugboard.h"
 #include "constants.h"
 
-reflector_t make_M3_Reflector(const char& reflector) {
-    const reflector_t* pReflector;
-    switch (reflector) {
-        case 'A':
-            pReflector = &A;
-            break;
-        case 'B':
-            pReflector = &B;
-            break;
-        case 'C':
-            pReflector = &C;
-            break;
-        default:
-            printf("Reflector value invalid; defaulting to B reflector.\n");
-            pReflector = &B;
-            break;
+void strToUpper(char* strInput) {
+    while (*strInput) {
+        *strInput = toupper(*strInput);
+        strInput++;
     }
-    return *pReflector;
 }
 
-reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
-        char ofs, int ring) {
-    reflector_t reflector = {thin.name + ":" + greek.name + ":" + ofs};
-    ofs -= 'A';
-    ofs = static_cast<char> (SubMod(ofs, ring - 1));
+reflector_t makeM3Reflector(const char& reflector) {
+    switch (reflector) {
+        case 'A':
+            return A;
+        case 'B':
+            return B;
+        case 'C':
+            return C;
+        default:
+            printf("Reflector value invalid; defaulting to B reflector.\n");
+            return B;
+    }
+}
+
+reflector_t makeM4Reflector(const reflector_t& thin, const reflector_t& greek,
+        char offset, int ring) {
+    reflector_t reflector = {thin.name + ":" + greek.name + ":" + offset};
+    offset -= 'A';
+    offset = static_cast<char> (SubMod(offset, ring - 1));
 
     // make the inverse of the mappings
     int inverse_thin[26], inverse_greek[26];
@@ -46,11 +47,11 @@ reflector_t make_M4_Reflector(const reflector_t& thin, const reflector_t& greek,
     // work out effective mapping
     for (int i = 0; i < 26; i++) {
         // enter greek rotor
-        int ch = greek.map[AddMod(i, ofs)];
+        int ch = greek.map[AddMod(i, offset)];
         // through the thin reflector
-        ch = AddMod(inverse_thin[SubMod(ch, ofs)], ofs);
+        ch = AddMod(inverse_thin[SubMod(ch, offset)], offset);
         // and back out the greek rotor
-        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], ofs));
+        reflector.map[i] = static_cast<char> (SubMod(inverse_greek[ch], offset));
     }
     return reflector;
 }
@@ -62,7 +63,7 @@ rotor_t assignRotor(const std::string& rotor) {
     //roman['D'] = 500;
     //roman['C'] = 100;
     //roman['L'] = 50;
-    //roman['X'] = 10; //all my numbers will be below 10, max 8
+    //roman['X'] = 10;
     roman['V'] = 5;
     roman['I'] = 1;
     int result = 0;
@@ -74,38 +75,28 @@ rotor_t assignRotor(const std::string& rotor) {
     }
     result += roman[rotor[rotor.size() - 1]];
 
-    const rotor_t* pRotor;
+    /* I normally prefer one return from a function but this makes more sense */
     switch (result) {
         case 1:
-            pRotor = &I;
-            break;
+            return I;
         case 2:
-            pRotor = &II;
-            break;
+            return II;
         case 3:
-            pRotor = &III;
-            break;
+            return III;
         case 4:
-            pRotor = &IV;
-            break;
+            return IV;
         case 5:
-            pRotor = &V;
-            break;
+            return V;
         case 6:
-            pRotor = &VI;
-            break;
+            return VI;
         case 7:
-            pRotor = &VII;
-            break;
+            return VII;
         case 8:
-            pRotor = &VIII;
-            break;
+            return VIII;
         default:
             printf("Error - Wheel notation invalid. Defaulting to I.\n");
-            pRotor = &I;
-            break;
+            return I;
     }
-    return *pRotor;
 }
 
 int main(int argc, char* args[]) {
@@ -137,7 +128,7 @@ int main(int argc, char* args[]) {
             printf("Error - reflector must be A, B, or C.\n");
             return -1;
         }
-        myReflector = make_M3_Reflector(reflektor);
+        myReflector = makeM3Reflector(reflektor);
     }//endif machine I/M3
     if (myMachineType == 4) {
         printf("Enter thin reflector (B or C):\n");
@@ -196,7 +187,7 @@ int main(int argc, char* args[]) {
             printf("Error - Greek ring must be 1-26.\n");
             return -1;
         }
-        myReflector = make_M4_Reflector(thinReflector, grWheel, grStart, grRing);
+        myReflector = makeM4Reflector(thinReflector, grWheel, grStart, grRing);
     }//endif machine M4
 
     //prompt user for rotors, positions, rings
@@ -204,6 +195,9 @@ int main(int argc, char* args[]) {
     printf("Enter left, middle, right rotor numbers (I-VIII) (Ex. I II IV: \n");
     scanf("%4s %4s %4s", leftRoman, middleRoman, rightRoman);
     getchar(); //pull one newline off the input buffer
+    strToUpper(leftRoman);
+    strToUpper(middleRoman);
+    strToUpper(rightRoman);
     rotor_t myLeftRotor = assignRotor(leftRoman);
     rotor_t myMiddleRotor = assignRotor(middleRoman);
     rotor_t myRightRotor = assignRotor(rightRoman);
@@ -253,7 +247,7 @@ int main(int argc, char* args[]) {
     printf("Beginning display:\n");
     if (myMachineType == 4) {
         //printf("%c ", myEnigma.reflector.name.back());//c++11 only
-        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length()-1));
+        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length() - 1));
 
     }
     printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
@@ -289,7 +283,7 @@ int main(int argc, char* args[]) {
     printf("Ending display:\n");
     if (myMachineType == 4) {
         //printf("%c ", myEnigma.reflector.name.back());//c++11 only
-        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length()-1));
+        printf("%c ", myEnigma.reflector.name.at(myEnigma.reflector.name.length() - 1));
     }
     printf("%c %c %c\n", AddMod(myEnigma.left.ofs, lRing - 1) + 'A',
             AddMod(myEnigma.middle.ofs, mRing - 1) + 'A',
