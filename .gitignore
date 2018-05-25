@@ -4,3 +4,7 @@
 
 /.vs/CppEnigmaSim/v15
 /x64
+/cmake-build-minsizerel
+/cmake-build-release
+/cmake-build-relwithdebinfo
+/cmake-build-debug
